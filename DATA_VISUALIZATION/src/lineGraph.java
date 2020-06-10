@@ -31,7 +31,7 @@ public class lineGraph extends JPanel {
 	public static void main(String[] args) {
 		 int[] values = new int[100];
 		 String[] label = new String[100];
-	     data.setData(values, label);
+//	     setData(values, label);
 		 JFrame myField = new JFrame();
 	     myField.setSize(1000, 800);
 	     myField.setVisible(true);

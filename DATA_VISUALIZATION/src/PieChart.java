@@ -25,7 +25,7 @@ public class PieChart extends JPanel {
        
 		 int[] values = new int[100];
 		 String[] label = new String[100];
-	     data.setData(values, label);
+//	     setData(values, label);
 	     
 		 JFrame myField = new JFrame();
 	     myField.setSize(1000, 800);

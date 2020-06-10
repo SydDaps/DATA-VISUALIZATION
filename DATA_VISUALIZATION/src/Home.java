@@ -44,6 +44,9 @@ public class Home extends JFrame {
     int rows = 0;
     Connection con;
     
+    Db dbCall = new Db();
+    ResultSet rs;
+    
     JPanel[] crPanel = new JPanel[5000];
     private JTextField[] crtextField= new JTextField[5000];
     private JTextField rowTextField;
@@ -152,7 +155,7 @@ public class Home extends JFrame {
                  
 				 int[] values = new int[100];
 				 String[] label = new String[100];
-			     setData(values, label);
+			     dbCall.setData(values, label);
 				
 				 JFrame lineGraph = new JFrame();
 			     lineGraph.setBounds(150, 150, 1000,800);
@@ -193,7 +196,7 @@ public class Home extends JFrame {
 		 		
 		 		 int[] values = new int[100];
 				 String[] label = new String[100];
-			     setData(values, label);
+			     dbCall.setData(values, label);
 		 		
 		 		
 		 		JFrame pieChart = new JFrame();
@@ -233,7 +236,7 @@ public class Home extends JFrame {
 				
 				 int[] values = new int[100];
 				 String[] label = new String[100];
-			     setData(values, label);
+			     dbCall.setData(values, label);
 				
 				 JFrame barChart = new JFrame();
 			     barChart.setBounds(150, 150, 1000,800);
@@ -269,7 +272,7 @@ public class Home extends JFrame {
 				
 				 int[] values = new int[100];
 				 String[] label = new String[100];
-			     setData(values, label);
+			     dbCall.setData(values, label);
 			     
 				 JFrame histogram = new JFrame();
 			     histogram.setBounds(150, 150, 1000,800);
@@ -304,7 +307,15 @@ public class Home extends JFrame {
 		readDataLabel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
-				readData();
+				try {
+					readData();
+				} catch (NumberFormatException e) {
+					
+					e.printStackTrace();
+				} catch (ClassNotFoundException e) {
+					
+					e.printStackTrace();
+				}
 			}
 			@Override
 			public void mouseEntered(MouseEvent arg0) {
@@ -369,8 +380,8 @@ public class Home extends JFrame {
 		
 	}
 	
-	public void readData() {
-		 createConnection();
+	public void readData() throws NumberFormatException, ClassNotFoundException {
+
 			try {
 				 if(rowTextField.getText().isEmpty() || columnTextField.getText().isEmpty()) {
 							handleError("Specify last row and column for data to be read");	
@@ -380,21 +391,25 @@ public class Home extends JFrame {
 			    rows = Integer.parseInt(rowTextField.getText());  
 			   
 			    count2 = 10;
-			    clearAllData();
+			        dbCall.clearData();
 			      	for(int a = 0;a < rows;a++) {
 			      		for(int b = 1; b < columns + 1 ;b++) {
 			      			if(crtextField[count2+b].getText().isEmpty()) {
 			      				handleError("Enter value in selected Field: "+(count2+b));	
-			      				clearAllData();
+                       dbCall.clearData();
 								return;	
 						    }
 			      		 }
-					    PreparedStatement restate = con.prepareStatement("INSERT INTO data (column1, column2) VALUES(?,?)"); 
-					    restate.setString(1,crtextField[count2+1].getText());
-					    restate.setDouble(2,Double.parseDouble(crtextField[count2+2].getText()));     
-					    restate.execute();
+			      		dbCall.addData(crtextField[count2+1].getText(), Double.parseDouble(crtextField[count2+2].getText()));
 			      		count2 += 10;
 			      }
+			      	
+			      	 rs = dbCall.displayUsers();
+					  while (rs.next()) {
+						   
+						     System.out.println(rs.getString("column1") + " " + rs.getDouble("column2"));
+						  }
+		      		
 			}
 				 catch (SQLException e) {
 					// TODO Auto-generated catch block
@@ -403,17 +418,7 @@ public class Home extends JFrame {
 
 	}
 				 
-	public void clearAllData() {
-		createConnection();
-		try {
-			PreparedStatement clearStat = con.prepareStatement("truncate table data");
-			clearStat.execute();
-			
-		} catch (SQLException  e) {
-			System.out.println(e);
-			e.printStackTrace();
-		}  
-	}
+
 	
 	public void handleError(String message) {
 		error frame = new error(message);
@@ -421,37 +426,11 @@ public class Home extends JFrame {
 	    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	}
 	
-	public void setData(int[] values,String[] label) {
-		createConnection();
-		count = 0;
-		try {
-			Statement state = con.createStatement();
-			ResultSet data = state.executeQuery("select * from data");
-			while(data.next()) {
-			label[count] = data.getString("column1");
-			values[count] = data.getInt("column2");
-				count++;
-			}		
-			
-		} catch ( SQLException  e) {
-			System.out.println(e);
-			e.printStackTrace();
-		}  
-		
-	}
+
 	
 	
 	
 	
 	
-	public void createConnection(){
-		try {
-			Class.forName("com.mysql.cj.jdbc.Driver");
-			con = DriverManager.getConnection("jdbc:mysql://localhost:3306/datavisualization","root","root"); 
 	
-		} catch (ClassNotFoundException | SQLException  e) {
-			System.out.println(e);
-			e.printStackTrace();
-		}  
-	}
 }
